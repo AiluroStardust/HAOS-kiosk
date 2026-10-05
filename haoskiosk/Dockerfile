@@ -18,6 +18,7 @@ RUN apk update && apk add --no-cache \
      mesa-gles \
      libdrm \
      cage \
+     dbus \
      cog \
      wpewebkit \
      libinput \
