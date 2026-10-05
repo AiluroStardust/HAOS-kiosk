@@ -87,6 +87,11 @@ export DBUS_SESSION_BUS_TIMEOUT=5000
 # Avoid the DRI3 path that previously contributed to instability.
 export LIBGL_DRI3_DISABLE=1
 
+# Cage requires XDG_RUNTIME_DIR for its Wayland socket/runtime files.
+export XDG_RUNTIME_DIR=/tmp/runtime-root
+mkdir -p "$XDG_RUNTIME_DIR"
+chmod 700 "$XDG_RUNTIME_DIR"
+
 ################################################################################
 # Start DBus
 ################################################################################
