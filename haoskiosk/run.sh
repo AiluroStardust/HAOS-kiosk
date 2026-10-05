@@ -193,4 +193,7 @@ bashio::log.info "URL: $DASHBOARD_URL"
 # Cage provides a minimal Wayland kiosk compositor.
 # Cog provides the WPE WebKit browser.
 
-exec cage -d /dev/dri/card0 -- cog "$DASHBOARD_URL"
+export WLR_BACKENDS=drm
+export WLR_DRM_DEVICES=/dev/dri/card0
+
+exec cage -- cog "$DASHBOARD_URL"
