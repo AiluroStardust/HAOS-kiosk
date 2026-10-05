@@ -36,6 +36,7 @@ RUN apk update && apk add --no-cache \
     pulseaudio-utils \
     x11vnc \
     dbus \
+    dconf \
     gtk+3.0 \
     webkit2gtk-4.1 \
     luakit \
