@@ -160,6 +160,8 @@ bashio::log.info "Selected DRM device: /dev/dri/$selected_card"
 
 rm -rf /tmp/.X*-lock
 
+mkdir -p /etc/X11
+
 if [[ -n "$XORG_CONF" && "$XORG_APPEND_REPLACE" = "replace" ]]; then
 
     echo "$XORG_CONF" > /etc/X11/xorg.conf
