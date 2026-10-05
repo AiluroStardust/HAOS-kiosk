@@ -100,9 +100,12 @@ export DBUS_SESSION_BUS_TIMEOUT=5000
 export GTK_CSD=0
 
 bashio::log.info "Starting DBus..."
+
 DBUS_SESSION_BUS_ADDRESS="$(dbus-daemon --session --fork --print-address)"
 export DBUS_SESSION_BUS_ADDRESS
+
 echo "$DBUS_SESSION_BUS_ADDRESS" > /tmp/DBUS_SESSION_BUS_ADDRESS
+
 bashio::log.info "DBus started"
 
 if [ -e /dev/tty0 ]; then
@@ -121,7 +124,13 @@ udevadm trigger 2>/dev/null || true
 udevadm settle --timeout=10 2>/dev/null || true
 
 bashio::log.info "DRM video cards:"
-find /dev/dri/ -maxdepth 1 -type c -name 'card[0-9]*' 2>/dev/null | sed 's/^/  /'
+
+find /dev/dri/ \
+    -maxdepth 1 \
+    -type c \
+    -name 'card[0-9]*' \
+    2>/dev/null |
+    sed 's/^/  /'
 
 selected_card=""
 
@@ -152,23 +161,60 @@ bashio::log.info "Selected DRM device: /dev/dri/$selected_card"
 rm -rf /tmp/.X*-lock
 
 if [[ -n "$XORG_CONF" && "$XORG_APPEND_REPLACE" = "replace" ]]; then
-    echo "$XORG_CONF" > /etc/X11/xorg.conf
-else
-    cp -a /etc/X11/xorg.conf.default /etc/X11/xorg.conf
 
-    sed -i \
-        "/Option[[:space:]]\+\"DRI\"[[:space:]]\+\"3\"/a\    Option \"kmsdev\" \"/dev/dri/$selected_card\"" \
-        /etc/X11/xorg.conf
+    echo "$XORG_CONF" > /etc/X11/xorg.conf
+
+else
+
+    if [ -f /etc/X11/xorg.conf.default ]; then
+
+        cp -a /etc/X11/xorg.conf.default /etc/X11/xorg.conf
+
+    else
+
+        cat > /etc/X11/xorg.conf <<EOF
+Section "Device"
+    Identifier "Card0"
+    Driver "modesetting"
+    Option "DRI" "3"
+    Option "kmsdev" "/dev/dri/$selected_card"
+EndSection
+
+Section "Screen"
+    Identifier "Screen0"
+    Device "Card0"
+EndSection
+EOF
+
+    fi
+
+    if [ -f /etc/X11/xorg.conf ]; then
+
+        if ! grep -q 'Option "kmsdev"' /etc/X11/xorg.conf; then
+
+            sed -i \
+                "/Option[[:space:]]\+\"DRI\"[[:space:]]\+\"3\"/a\    Option \"kmsdev\" \"/dev/dri/$selected_card\"" \
+                /etc/X11/xorg.conf
+
+        fi
+
+    fi
 
     if [ -n "$XORG_CONF" ] && [ "$XORG_APPEND_REPLACE" = "append" ]; then
+
         printf '\n#\n%s\n' "$XORG_CONF" >> /etc/X11/xorg.conf
+
     fi
+
 fi
 
 bashio::log.info "Starting X on DISPLAY=$DISPLAY..."
 
 NOCURSOR=""
-[ "$CURSOR_TIMEOUT" -lt 0 ] && NOCURSOR="-nocursor"
+
+if [ "$CURSOR_TIMEOUT" -lt 0 ]; then
+    NOCURSOR="-nocursor"
+fi
 
 Xorg $NOCURSOR </dev/null 2>&1 &
 XORG_PID=$!
@@ -176,10 +222,13 @@ XORG_PID=$!
 XSTARTUP=30
 
 for ((i=0; i<=XSTARTUP; i++)); do
+
     if xset q >/dev/null 2>&1; then
         break
     fi
+
     sleep 1
+
 done
 
 if [ -n "$TTY0_DELETED" ]; then
@@ -194,12 +243,14 @@ fi
 bashio::log.info "X server started successfully"
 
 if [ "$CURSOR_TIMEOUT" -gt 0 ]; then
+
     unclutter-xfixes \
         --start-hidden \
         --hide-on-touch \
         --fork \
         --timeout "$CURSOR_TIMEOUT" \
         2>/dev/null || true
+
 fi
 
 mkdir -p ~/.config/openbox
@@ -244,18 +295,27 @@ fi
 OUTPUT_NAME="${OUTPUTS[$((OUTPUT_NUMBER - 1))]}"
 
 if [ "$ROTATE_DISPLAY" = "normal" ]; then
-    xrandr --output "$OUTPUT_NAME" --primary --auto
+
+    xrandr \
+        --output "$OUTPUT_NAME" \
+        --primary \
+        --auto
+
 else
+
     xrandr \
         --output "$OUTPUT_NAME" \
         --primary \
         --rotate "$ROTATE_DISPLAY"
+
 fi
 
 for OUTPUT in "${OUTPUTS[@]}"; do
+
     if [ "$OUTPUT" != "$OUTPUT_NAME" ]; then
         xrandr --output "$OUTPUT" --off
     fi
+
 done
 
 bashio::log.info "Selected output: $OUTPUT_NAME"
@@ -271,13 +331,22 @@ read -r SCREEN_WIDTH SCREEN_HEIGHT < <(
 bashio::log.info "Screen: Width=$SCREEN_WIDTH Height=$SCREEN_HEIGHT"
 
 if [ "$MAP_TOUCH_INPUTS" = true ]; then
+
     while IFS= read -r id; do
+
         name="$(xinput list --name-only "$id" 2>/dev/null || true)"
 
         [[ "${name,,}" =~ touch|touchscreen|stylus ]] || continue
 
-        xinput map-to-output "$id" "$OUTPUT_NAME" 2>/dev/null || true
-    done < <(xinput list --id-only 2>/dev/null | sort -n)
+        xinput map-to-output \
+            "$id" \
+            "$OUTPUT_NAME" \
+            2>/dev/null || true
+
+    done < <(
+        xinput list --id-only 2>/dev/null | sort -n
+    )
+
 fi
 
 if [ "$ONSCREEN_KEYBOARD" = true ]; then
@@ -295,12 +364,14 @@ bashio::log.info "Starting HAOSKiosk REST server..."
 python3 -u /rest_server.py &
 
 if [ -n "$VNC_SERVER" ]; then
+
     x11vnc \
         -display :0 \
         -forever \
         -bg \
         -shared \
         -quiet &
+
 fi
 
 if [ "$DEBUG_MODE" != true ]; then
@@ -324,7 +395,11 @@ if [ "$DEBUG_MODE" != true ]; then
     wait "$BROWSER_PID"
 
     bashio::log.info "Luakit exited"
+
 else
+
     bashio::log.info "DEBUG_MODE=true — Xorg/OpenBox running without browser"
+
     exec sleep infinity
+
 fi
