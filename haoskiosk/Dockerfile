@@ -21,7 +21,6 @@ RUN apk update && apk add --no-cache \
     libinput \
     libinput-udev \
     libevdev \
-    evdev \
     udev \
     openbox \
     onboard \
@@ -39,27 +38,7 @@ RUN apk update && apk add --no-cache \
     dbus \
     gtk+3.0 \
     webkit2gtk-4.1 \
-    luajit \
-    lua5.1 \
-    lua5.1-socket \
-    gsettings-desktop-schemas \
-    gst-plugins-good \
-    libsoup \
-    sqlite-libs \
-    cairo \
-    pango \
-    gdk-pixbuf \
-    libxcomposite \
-    libxdamage \
-    libxfixes \
-    libxi \
-    libxtst \
-    libxrandr \
-    libxcursor \
-    libxinerama \
-    libxrender \
-    libxext \
-    libx11 \
+    luakit \
     && rm -rf /var/cache/apk/*
 
 ENV HA_URL=http://localhost:8123
