@@ -388,6 +388,9 @@ if [ "$DEBUG_MODE" != true ]; then
 
     bashio::log.info "Launching Luakit: $DASHBOARD_URL"
 
+    export WEBKIT_DISABLE_COMPOSITING_MODE=1
+    export LIBGL_ALWAYS_SOFTWARE=1
+
     "$BROWSER" "$DASHBOARD_URL" &
 
     BROWSER_PID=$!
