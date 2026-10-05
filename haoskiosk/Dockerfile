@@ -1,56 +1,74 @@
-################################################################################
-# Add-on: HAOS Kiosk Display (haoskiosk)
-# File: Dockerfile
-# Lightweight kiosk browser: Cog + WPE WebKit + Cage
-################################################################################
-
 ARG BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.21
 FROM $BUILD_FROM
 
 ARG BUILD_VERSION
 ENV ADDON_VERSION=${BUILD_VERSION}
 
-#===============================================================================
-##### Install lightweight graphics stack and kiosk browser
 RUN apk update && apk add --no-cache \
-     mesa-dri-gallium \
-     mesa-egl \
-     mesa-gles \
-     libdrm \
-     cage \
-     dbus \
-     cog \
-     wpewebkit \
-     libinput \
-     libinput-udev \
-     libevdev \
-     udev \
-     evtest \
-     xf86-input-libinput \
-     bash \
-     util-linux \
-     icu-data-full \
-     py3-aiohttp \
-     py3-xlib \
-     pulseaudio-utils \
-     ttf-dejavu \
-     x11vnc \
-   && rm -rf /var/cache/apk/*
+    xorg-server \
+    xf86-video-modesetting \
+    mesa-dri-gallium \
+    mesa-egl \
+    mesa-gles \
+    libdrm \
+    xdotool \
+    xinput \
+    xrandr \
+    xset \
+    libxkbcommon \
+    setxkbmap \
+    xf86-input-libinput \
+    libinput \
+    libinput-udev \
+    libevdev \
+    evdev \
+    udev \
+    openbox \
+    onboard \
+    unclutter-xfixes \
+    ttf-dejavu \
+    bash \
+    util-linux \
+    patch \
+    scrot \
+    icu-data-full \
+    py3-aiohttp \
+    py3-xlib \
+    pulseaudio-utils \
+    x11vnc \
+    dbus \
+    gtk+3.0 \
+    webkit2gtk-4.1 \
+    luajit \
+    lua5.1 \
+    lua5.1-socket \
+    gsettings-desktop-schemas \
+    gst-plugins-good \
+    libsoup \
+    sqlite-libs \
+    cairo \
+    pango \
+    gdk-pixbuf \
+    libxcomposite \
+    libxdamage \
+    libxfixes \
+    libxi \
+    libxtst \
+    libxrandr \
+    libxcursor \
+    libxinerama \
+    libxrender \
+    libxext \
+    libx11 \
+    && rm -rf /var/cache/apk/*
 
-#===============================================================================
-
-##### Home Assistant kiosk URL
 ENV HA_URL=http://localhost:8123
 
-##### Copy translations and supporting files
 COPY translations/*.yaml /translations/
-
 COPY run.sh /
 RUN chmod a+x /run.sh
 
 COPY mouse_touch_inputs.py gesture_commands.json /
 COPY rest_server.py /
-
-#===============================================================================
 
 CMD ["/run.sh"]
