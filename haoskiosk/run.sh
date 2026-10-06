@@ -388,10 +388,16 @@ if [ "$DEBUG_MODE" != true ]; then
 
     bashio::log.info "Launching Luakit: $DASHBOARD_URL"
 
+    # Browser stability settings for Raspberry Pi 3
     export WEBKIT_DISABLE_COMPOSITING_MODE=1
     export LIBGL_ALWAYS_SOFTWARE=1
 
-    "$BROWSER" "$DASHBOARD_URL" &
+    # Prevent WebKit/GStreamer from attempting to use physical audio hardware
+    export GST_AUDIO_SINK=fakesink
+    export GST_AUDIO_SRC=fakesrc
+
+    # Start Luakit without the system rc.lua configuration
+    "$BROWSER" -c /dev/null "$DASHBOARD_URL" &
 
     BROWSER_PID=$!
 
